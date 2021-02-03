@@ -41,6 +41,7 @@ Qvec   <- apply(retu, 1, posmat)
 Qvec   <- (abs(Qvec - 0.5)/0.5>Cutoff)
 
 pdmatind <- (pdmat0 != 0)
+index <- as.matrix(combinat::combn(1:c, 2))
 pdmatt <- pdmatind[t(index)]
 ind1 <- which(pdmatt==1) #Find the indices where there is an edge
 ind0 <- which(pdmatt==0) #Find the indices where there is no edge
