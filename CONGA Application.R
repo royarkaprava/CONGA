@@ -1,3 +1,5 @@
+library(combinat)
+
 Ti <- 100
 
 c <- 30
