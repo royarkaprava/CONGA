@@ -35,7 +35,7 @@ pdmat0[which(abs(pdmat0) < 1)] <- 0 #Generate sparse precision matrix
   
 #The following line builds 'number of parameters' X 'number of MCMC samples' matrix. 
 #Hence each row of this matrix corresponds to the MCMC samples of each parameter in beta. 
-#If there c many variables as above, the length of beta is c\choose 2.
+#If there are c many variables as above, the length of beta is c\choose 2.
   
 retu <- matrix(unlist(beta_p), length(beta_p[[1]]), length(beta_p))
 
