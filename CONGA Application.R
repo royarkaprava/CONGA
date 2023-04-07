@@ -59,6 +59,12 @@ Qvec   <- (abs(Qvec - 0.5)/0.5>Cutoff)
 #All possible edges are the columns in the following index matrix
 index <- as.matrix(combinat::combn(1:c, 2))
 
+#Estimated adjacency under a cutoff 0.7
+estiAdj <- matrix(0, c, c)
+estiAdj[t(index)] <- Qvec
+
+estiAdj <- estiAdj + t(estiAdj)
+
 #Now under the cutoff 0.7 index[,which(Qvec==1)] gives you the detected edges. 
 
 #If we have a true precision matrix encoding the graphical dependence. 
