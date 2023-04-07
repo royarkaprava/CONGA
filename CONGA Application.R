@@ -32,21 +32,43 @@ pdmat0[which(abs(pdmat0) < 1)] <- 0 #Generate sparse precision matrix
 #Post process to construct the graph. This is a different appraoch from the paper.
 #This works better to generate the ROC curve. This will be updated in the next revision of the paper
 
-retu <- matrix(unlist(beta_p), lenght(beta_p[[1]]), length(beta_p))
+  
+#The following line builds 'number of parameters' X 'number of MCMC samples' matrix. 
+#Hence each row of this matrix corresponds to the MCMC samples of each parameter in beta. 
+#If there c many variables as above, the length of beta is c\choose 2.
+  
+retu <- matrix(unlist(beta_p), length(beta_p[[1]]), length(beta_p))
+
+#From above matrix, we can compute the posterior probability of being on the positive part of the real line. 
+#This is computed in the following few lines.
+
 
 posmat <- function(x){
   mean(x >= 0)
 }
 
-Cutoff <- 0.7 #To construct ROC, we need to vary this cutoff
 Qvec   <- apply(retu, 1, posmat)
+
+#Now there are different ways to use these probabilities.
+#We set a cutoff say 0.7 and compute the following,
+
+Cutoff <- 0.7 #To construct ROC, we need to vary this cutoff
 Qvec   <- (abs(Qvec - 0.5)/0.5>Cutoff)
 
-pdmatind <- (pdmat0 != 0)
+
+#All possible edges are the columns in the following index matrix
 index <- as.matrix(combinat::combn(1:c, 2))
-pdmatt <- pdmatind[t(index)]
-ind1 <- which(pdmatt==1) #Find the indices where there is an edge
-ind0 <- which(pdmatt==0) #Find the indices where there is no edge
+
+#Now under the cutoff 0.7 index[,which(Qvec==1)] gives you the detected edges. 
+
+#If we have a true precision matrix encoding the graphical dependence. 
+#Then,
+
+pdmatind <- (pdmat0 != 0) #Binarize the entries either zero or non-zero.
+
+pdmatt <- pdmatind[t(index)] #extracts the entries correspond to different edges
+ind1 <- which(pdmatt==1) #Find the indices where there is an edge based on the true precision matrix
+ind0 <- which(pdmatt==0) #Find the indices where there is no edge based on the true precision matrix
 
 mean(Qvec[ind0]==1) #False positive
 mean(Qvec[ind1]==1) #True positive
