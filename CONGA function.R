@@ -1,7 +1,7 @@
 
 CONGAfit <- function(X, Total_itr = 5000, burn = 2500){
   library(mvtnorm)
-
+  library(bayesm)
   
   Ti <- nrow(X)
   c  <- ncol(X)
@@ -10,8 +10,8 @@ CONGAfit <- function(X, Total_itr = 5000, burn = 2500){
   tes <- rep(0, po)
   
   #Tune power paramter (theta) from the paper.
-  for(i in 1:(10*po)){
-    tes[i] <- mean((cov(atan(X)^(i/10))-cov(X))^2)
+  for(i in 1:(2*po)){
+    tes[i] <- mean((cov(atan(X)^(i/2))-cov(X))^2)
   }
   
   po <- which.min(tes)/10
@@ -100,7 +100,7 @@ CONGAfit <- function(X, Total_itr = 5000, burn = 2500){
   acbeta    <- 0
   ap        <- 1/betalen
   psi       <- rexp(betalen, 0.5)
-  phi       <- rdirichlet(1, rep(ap, betalen))
+  phi       <- rdirichlet(rep(ap, betalen))
   tau       <- rgamma(1, betalen*ap, 0.5)
   sigma     <- rep(1, betalen)
   newc      <- rep(0, Total_itr)
@@ -127,7 +127,7 @@ CONGAfit <- function(X, Total_itr = 5000, burn = 2500){
       Q <- matrix(0, Ti, Ti)
       for(i in 1:Ti){
         #for(j in 1:Ti){
-        Q[i, ] <- dpois(X[i, k], lambda[, k])
+        Q[i, ] <- dpois(X[i, k], lambda[, k])+1e-100
         #}
         Q[i, i] <- M[k] * dgamma(lambda[i, k],alpha+X[i, k], betalam + 1)
         Q[i, ] <- Q[i, ] / sum(Q[i, ])
