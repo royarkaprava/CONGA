@@ -90,7 +90,7 @@ CONGAfit <- function(X, Total_itr = 5000, burn = 2500){
   lambda    <- X 
   matan     <- colMeans(atan(X)^po) 
   Me        <- matrix(matan, Ti, c, byrow = T)
-  pdx       <- t(atan(X)^po-Me)%*%(atan(X)^po-Me) 
+  pdx       <- crossprod(atan(X)^po-Me) 
   me        <- pdx[t(index)]
   
   betalen   <- c*(c-1)/2
@@ -116,7 +116,7 @@ CONGAfit <- function(X, Total_itr = 5000, burn = 2500){
   prq   <- 1/betalen
   consb <- 1
   
-  pdxid <- diag(solve(pdx/(Ti)))
+  pdxid <- diag(solve(cov(atan(X)^(po))))#pdx/(Ti)))
   pb <- txtProgressBar(min = itr, max = Total_itr, style = 3)
   while(itr < Total_itr){
     itr <- itr + 1
