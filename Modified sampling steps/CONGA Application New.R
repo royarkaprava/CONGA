@@ -23,20 +23,20 @@ pdmat0[which(abs(pdmat0) < 1)] <- 0 #Generate sparse precision matrix
 
 #for(rep in 1:100){
 #Generate count data from copula type model
-  rawvars <- mvtnorm::rmvnorm(Ti, mean=rep(0, c), sigma=solve(pdmat0))
-  pvars <- pnorm(rawvars)
-  X <- qpois(pvars, 5)
+rawvars <- mvtnorm::rmvnorm(Ti, mean=rep(0, c), sigma=solve(pdmat0))
+pvars <- pnorm(rawvars)
+X <- qpois(pvars, 5)
 
-  fit <- CONGAfit(X)
-  beta_p <- fit$BetaMCMC
+fitN <- CONGAfitNew(X)
+beta_p <- fitN$BetaMCMC
 #Post process to construct the graph. This is a different appraoch from the paper.
 #This works better to generate the ROC curve. This will be updated in the next revision of the paper
 
-  
+
 #The following line builds 'number of parameters' X 'number of MCMC samples' matrix. 
 #Hence each row of this matrix corresponds to the MCMC samples of each parameter in beta. 
 #If there are c many variables as above, the length of beta is c\choose 2.
-  
+
 retu <- matrix(unlist(beta_p), length(beta_p[[1]]), length(beta_p))
 
 #From above matrix, we can compute the posterior probability of being on the positive part of the real line. 
