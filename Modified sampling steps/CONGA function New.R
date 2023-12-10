@@ -54,7 +54,7 @@ CONGAfitNew <- function(X, Total_itr = 5000, burn = 2500){
       meant[k] <- atanmean(lambda[i, k])
     }
     
-    ret <- dpois(X[i, j], lambda[i, j], log = T) + (lambda[i, j])
+    ret <- -lambda[i, j]+X[i, j]*log(lambda[i, j]) + (lambda[i, j])
     ret <- (ret) - log(numerlike1(i, j, lambda, beta))
     
     return((ret))
@@ -123,7 +123,7 @@ CONGAfitNew <- function(X, Total_itr = 5000, burn = 2500){
       Q <- matrix(0, Ti, Ti)
       for(i in 1:Ti){
         #for(j in 1:Ti){
-        Q[i, ] <- dpois(X[i, k], lambda[, k])+1e-100
+        Q[i, ] <- exp(-lambda[,k])*lambda[, k]^(X[i, k])+1e-100
         #}
         Q[i, i] <- M[k] * dgamma(lambda[i, k],alpha+X[i, k], betalam + 1)
         Q[i, ] <- Q[i, ] / sum(Q[i, ])
@@ -177,7 +177,7 @@ CONGAfitNew <- function(X, Total_itr = 5000, burn = 2500){
       varc <- varceiU %*% diag(1/abs(varceiD)) %*% t(varceiU)
       #varc <- (varc+t(varc))/2
       betac <- array(rmvnorm(1, varc %*% mean, varc))
-      betac[which(is.na(betac))] <- 0
+      if(length(is.na(betac))) betac[which(is.na(betac))] <- 0
       #const <- as.numeric(sdb / sqrt(crossprod(betac - Beta[i, -i])))
       #if(const>1){const = 1}
       #betac <- Beta[i, -i] + const*(betac - Beta[i, -i])
