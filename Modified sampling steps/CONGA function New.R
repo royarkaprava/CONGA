@@ -136,6 +136,8 @@ CONGAfitNew <- function(X, Total_itr = 5000, burn = 2500){
           R <- llhoodl(i, k, X, lambdac, beta) - llhoodl(i, k, X, lambda, beta)
           R <- R + (dgamma(lamc, alpha, betalam, log = T) - dgamma(lambda[i, k], alpha, betalam, log = T)) 
           
+          R <- R - (dgamma(lamc, alpha+X[i, k], betalam + 1, log = T) + dgamma(lambda[i, k], alpha+X[i, k], betalam + 1, log = T)) 
+          
           u <- runif(1)
           
           if(is.na(R) == T || is.nan(R) == T){R = 1}
