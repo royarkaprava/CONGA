@@ -1,5 +1,5 @@
 
-CONGAfitNew <- function(X, Total_itr = 5000, burn = 2500){
+CONGAfitNew <- function(X, Total_itr = 5000, lambdashrk=1, burn = 2500){
   library(mvtnorm)
   library(bayesm)
   
@@ -173,7 +173,7 @@ CONGAfitNew <- function(X, Total_itr = 5000, burn = 2500){
       varctempeiU <- varctempei$vectors
       varctempeiD <- varctempei$values
       varctemp <- varctempeiU %*% diag(1/abs(varctempeiD)) %*% t(varctempeiU)
-      varcei <- eigen((var(atan(X[, i])^po+1) * Ti)* varctemp + diag(1 / varc))
+      varcei <- eigen((var(atan(X[, i])^po+lambdashrk) * Ti)* varctemp + diag(1 / varc))
       varceiU <- varcei$vectors
       varceiD <- varcei$values
       varc <- varceiU %*% diag(1/abs(varceiD)) %*% t(varceiU)
