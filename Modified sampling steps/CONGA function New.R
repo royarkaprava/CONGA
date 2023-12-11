@@ -1,4 +1,6 @@
 
+#lambdashrk is the shrinkage parameter, similar to the one in Wang (2012).
+
 CONGAfitNew <- function(X, Total_itr = 5000, lambdashrk=1, burn = 2500){
   library(mvtnorm)
   library(bayesm)
