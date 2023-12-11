@@ -1,3 +1,4 @@
+Rcpp::sourceCpp("/GitHub/CONGA/Modified sampling steps/pocal.cpp")
 
 #lambdashrk is the shrinkage parameter, similar to the one in Wang (2012).
 
@@ -8,15 +9,16 @@ CONGAfitNew <- function(X, Total_itr = 5000, lambdashrk=1, burn = 2500){
   Ti <- nrow(X)
   c  <- ncol(X)
   po <- max(X)
-  #Fitting the model starts here
-  tes <- rep(0, po)
+  # #Fitting the model starts here
   
-  #Tune power paramter (theta) from the paper.
-  for(i in 1:(2*po)){
-    tes[i] <- mean((cov(atan(X)^(i/2))-cov(X))^2)
-  }
+  # tes <- rep(0, po)
+  # 
+  # #Tune power paramter (theta) from the paper.
+  # for(i in 1:(2*po)){
+  #   tes[i] <- mean((cov(atan(X)^(i/2))-cov(X))^2)
+  # }
   
-  po <- which.min(tes)/10
+  po <- posel(po, X)#which.min(tes)/10
   
   library(combinat)
   
