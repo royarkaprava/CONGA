@@ -105,8 +105,8 @@ CONGAfitNew <- function(X, Total_itr = 5000, burn = 2500){
   Beta[row(Beta)>col(Beta)] <- beta
   Beta <- Beta + t(Beta)
   
-  s1    <- 1  
-  s0    <- 1
+  s1    <- 100  
+  s0    <- 100
   Z     <- rep(1, betalen)
   
   prq   <- 1/betalen
@@ -173,7 +173,7 @@ CONGAfitNew <- function(X, Total_itr = 5000, burn = 2500){
       varctempeiU <- varctempei$vectors
       varctempeiD <- varctempei$values
       varctemp <- varctempeiU %*% diag(1/abs(varctempeiD)) %*% t(varctempeiU)
-      varcei <- eigen((var(atan(X[, i])^po+4) * Ti)* varctemp + diag(1 / varc))
+      varcei <- eigen((var(atan(X[, i])^po+1) * Ti)* varctemp + diag(1 / varc))
       varceiU <- varcei$vectors
       varceiD <- varcei$values
       varc <- varceiU %*% diag(1/abs(varceiD)) %*% t(varceiU)
@@ -187,7 +187,7 @@ CONGAfitNew <- function(X, Total_itr = 5000, burn = 2500){
       Betac[- i, i] <- betac 
       betac   <-  Betac[i, -i]
       R <- llhoodb(i, X, lambda, Betac[t(index)]) - llhoodb(i, X, lambda, beta)
-      R <- R + sum((dnorm(Betac[t(index)], 0, sigma, log = T) - dnorm(beta, 0, sigma, log = T)))
+      R <- R + sum((dnorm(Betac[i, -i], 0, bsigma[i, -i], log = T) - dnorm(Beta[i, -i], 0, bsigma[i, -i], log = T)))
       
       Q <- dmvnorm(Beta[- i, i], varc %*% mean, varc, log = T) - dmvnorm(betac, varc %*% mean, varc, log = T)
       R <- R + Q
