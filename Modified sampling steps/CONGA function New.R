@@ -123,7 +123,7 @@ CONGAfitNew <- function(X, Total_itr = 5000, burn = 2500){
       Q <- matrix(0, Ti, Ti)
       for(i in 1:Ti){
         #for(j in 1:Ti){
-        Q[i, ] <- exp(-lambda[,k])*(lambda[, k]^(X[i, k]))+1e-100
+        Q[i, ] <- exp(-lambda[,k])*(lambda[, k]^(X[i, k]))/gamma(X[i, k]+1)+1e-100
         #}
         Q[i, i] <- M[k] * dgamma(lambda[i, k],alpha+X[i, k], betalam + 1)
         Q[i, ] <- Q[i, ] / sum(Q[i, ])
