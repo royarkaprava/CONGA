@@ -116,7 +116,12 @@ CONGAfitNew <- function(X, Total_itr = 5000, lambdashrk=1, burn = 2500){
   prq   <- 1/betalen
   consb <- 1
   
-  pdxid <- diag(solve(cov(atan(X)^(po))))#pdx/(Ti)))
+  tryout <- try(pdxid <- diag(solve(cov(atan(X)^(po)))), silent = T)#pdx/(Ti)))
+  const <- 1e-20
+  while(class(tryout)=="try-error"){
+    tryout <- try(pdxid <- diag(solve(cov(atan(X)^(po)) + const*diag(c))), silent = T)
+    const <- 10*const
+  }
   pb <- txtProgressBar(min = itr, max = Total_itr, style = 3)
   while(itr < Total_itr){
     itr <- itr + 1
