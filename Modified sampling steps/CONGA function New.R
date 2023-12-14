@@ -90,7 +90,7 @@ CONGAfitNew <- function(X, Total_itr = 5000, lambdashrk=1, burn = 2500){
   M         <- rep(2, c)
   alpha     <- 1
   betalam   <- 1
-  lambda    <- X 
+  lambda    <- X + 1e-10
   matan     <- colMeans(atan(X)^po) 
   Me        <- matrix(matan, Ti, c, byrow = T)
   pdx       <- crossprod(atan(X)^po-Me) 
@@ -116,6 +116,9 @@ CONGAfitNew <- function(X, Total_itr = 5000, lambdashrk=1, burn = 2500){
   prq   <- 1/betalen
   consb <- 1
   
+  aclam <- 0
+  acbeta <- 0
+  
   tryout <- try(pdxid <- diag(solve(cov(atan(X)^(po)))), silent = T)#pdx/(Ti)))
   const <- 1e-20
   while(class(tryout)=="try-error"){
@@ -123,20 +126,21 @@ CONGAfitNew <- function(X, Total_itr = 5000, lambdashrk=1, burn = 2500){
     const <- 10*const
   }
   pb <- txtProgressBar(min = itr, max = Total_itr, style = 3)
+  gamout <- dgamma(lambda,alpha+X, betalam + 1)
   while(itr < Total_itr){
     itr <- itr + 1
     
     for(k in 1:c){
       
       lambdac       <- lambda
-      Q <- matrix(0, Ti, Ti)
+      Q <- rep(0, Ti)
       for(i in 1:Ti){
         #for(j in 1:Ti){
-        Q[i, ] <- exp(-lambda[,k]+log(lambda[, k])*X[i, k]-lgamma(X[i, k]+1))+1e-100
+        Q <- exp(-lambda[,k]+log(lambda[, k])*X[i, k]-lgamma(X[i, k]+1))+1e-100
         #}
-        Q[i, i] <- M[k] * dgamma(lambda[i, k],alpha+X[i, k], betalam + 1)
-        Q[i, ] <- Q[i, ] / sum(Q[i, ])
-        new_ind <- sample(x = 1:Ti, 1, replace = T, prob = Q[i,])
+        Q[i] <- M[k] * gamout[i, k]
+        Q <- Q / sum(Q)
+        new_ind <- sample(x = 1:Ti, 1, replace = T, prob = Q)
         if(new_ind == i){
           lamc          <- rgamma(1, alpha+X[i, k], betalam + 1)
           lambdac[i, k] <- lamc
@@ -157,8 +161,9 @@ CONGAfitNew <- function(X, Total_itr = 5000, lambdashrk=1, burn = 2500){
         else
         {lambda[i, k]= lambda[new_ind, k]
         lambdac[i, k] = lambda[new_ind, k]}
+        gamout[i, k] <- dgamma(lambda[i,k],alpha+X[i,k], betalam + 1)
       }
-      if(sum(lambdac[, k]!=lambda[, k])>0){}
+      if(sum(abs(lambdac[, k]-lambda[, k])>1e-15)>0){}
       ka <- length(unique(lambda[, k]))
       delta2 <- rbeta(1, M[k], Ti)
       M[k] <- rgamma(1, 10 + ka, 10 - log(delta2))
@@ -178,14 +183,14 @@ CONGAfitNew <- function(X, Total_itr = 5000, lambdashrk=1, burn = 2500){
       varctemp <- matrix(0, c-1, c-1)
       varctemp <- Beta[-i, -i]
       diag(varctemp) <- pdxid[-i]
-      varctempei <- eigen(varctemp)
-      varctempeiU <- varctempei$vectors
-      varctempeiD <- varctempei$values
-      varctemp <- varctempeiU %*% diag(1/abs(varctempeiD)) %*% t(varctempeiU)
-      varcei <- eigen((var(atan(X[, i])^po+lambdashrk) * Ti)* varctemp + diag(1 / varc))
-      varceiU <- varcei$vectors
-      varceiD <- varcei$values
-      varc <- varceiU %*% diag(1/abs(varceiD)) %*% t(varceiU)
+      #varctempei <- eigen(varctemp)
+      #varctempeiU <- varctempei$vectors
+      #varctempeiD <- varctempei$values
+      varctemp <- solve(varctemp)#varctempeiU %*% diag(1/abs(varctempeiD)) %*% t(varctempeiU)
+      # varcei <- eigen((var(atan(X[, i])^po+lambdashrk) * Ti)* varctemp + diag(1 / varc))
+      # varceiU <- varcei$vectors
+      # varceiD <- varcei$values
+      varc <- solve((var(atan(X[, i])^po+lambdashrk) * Ti)* varctemp + diag(1 / varc))#varceiU %*% diag(1/abs(varceiD)) %*% t(varceiU)
       #varc <- (varc+t(varc))/2
       betac <- array(rmvnorm(1, varc %*% mean, varc))
       if(length(is.na(betac))) betac[which(is.na(betac))] <- 0
