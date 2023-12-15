@@ -188,7 +188,7 @@ CONGAfitNew <- function(X, Total_itr = 5000, lambdashrk=1, burn = 2500){
       #varctempeiD <- varctempei$values
       varctemp <- crossprod(varctempeiU) #varctempeiU %*% diag(1/abs(varctempeiD)) %*% t(varctempeiU)
       varcei <- eigen((var(atan(X[, i])^po+lambdashrk) * Ti)* varctemp + diag(1 / varc))
-      varceiU <- t(varcei$vectors)/sqrt(varcei$values)
+      varceiU <- t(varcei$vectors)/sqrt(abs(varcei$values))
       #varceiD <- varcei$values
       varc <- crossprod(varceiU)#varceiU %*% diag(1/abs(varceiD)) %*% t(varceiU)
       #varc <- (varc+t(varc))/2
