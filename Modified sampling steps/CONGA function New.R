@@ -183,14 +183,14 @@ CONGAfitNew <- function(X, Total_itr = 5000, lambdashrk=1, burn = 2500){
       varctemp <- matrix(0, c-1, c-1)
       varctemp <- Beta[-i, -i]
       diag(varctemp) <- pdxid[-i]
-      #varctempei <- eigen(varctemp)
-      #varctempeiU <- varctempei$vectors
+      varctempei <- eigen(varctemp)
+      varctempeiU <- t(varctempei$vectors)/sqrt(abs(varctempei$values))
       #varctempeiD <- varctempei$values
-      varctemp <- solve(varctemp)#varctempeiU %*% diag(1/abs(varctempeiD)) %*% t(varctempeiU)
-      # varcei <- eigen((var(atan(X[, i])^po+lambdashrk) * Ti)* varctemp + diag(1 / varc))
-      # varceiU <- varcei$vectors
-      # varceiD <- varcei$values
-      varc <- solve((var(atan(X[, i])^po+lambdashrk) * Ti)* varctemp + diag(1 / varc))#varceiU %*% diag(1/abs(varceiD)) %*% t(varceiU)
+      varctemp <- crossprod(varctempeiU) #varctempeiU %*% diag(1/abs(varctempeiD)) %*% t(varctempeiU)
+      varcei <- eigen((var(atan(X[, i])^po+lambdashrk) * Ti)* varctemp + diag(1 / varc))
+      varceiU <- t(varcei$vectors)/sqrt(varcei$values)
+      #varceiD <- varcei$values
+      varc <- crossprod(varceiU)#varceiU %*% diag(1/abs(varceiD)) %*% t(varceiU)
       #varc <- (varc+t(varc))/2
       betac <- array(rmvnorm(1, varc %*% mean, varc))
       if(length(is.na(betac))) betac[which(is.na(betac))] <- 0
