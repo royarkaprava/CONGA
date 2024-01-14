@@ -28,7 +28,7 @@ pvars <- pnorm(rawvars)
 X <- qpois(pvars, 5)
 
 fitN <- CONGAfitNew(X)
-beta_p <- fitN$BetaMCMC
+beta_p <- fitN$BetaMCMC[1:1000]
 #Post process to construct the graph. This is a different appraoch from the paper.
 #This works better to generate the ROC curve. This will be updated in the next revision of the paper
 
