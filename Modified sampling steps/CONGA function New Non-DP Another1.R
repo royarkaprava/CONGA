@@ -167,16 +167,26 @@ CONGAfitNewer <- function(X, Total_itr = 5000, lambdashrk=1, burn = 2500){
       mean <- - pdx[i, -i] 
       varc <- bsigma[i,-i] 
       varctemp <- matrix(0, c-1, c-1)
+      #Beta[-i, -i] is the Omega_11
       varctemp <- Beta[-i, -i]
+      
+      #Unlike Wang the diagonal will be precomputed as above
       diag(varctemp) <- pdxid[-i]
+      
+      #Calculating inverse of Omega_11 using eigen first get eigen
+      
       varctempei <- eigen(varctemp)
-      #varctempeiU <- t(varctempei$vectors)/sqrt(abs(varctempei$values))
-      #varctempeiD <- varctempei$values
-      #varctemp <- crossprod(varctempeiU) #varctempeiU %*% diag(1/abs(varctempeiD)) %*% t(varctempeiU)
+      
+      #Get the eigen values of Cinv
+      
       varcei <- (var(atan(X[, i])^po+lambdashrk) * Ti)/abs(varctempei$values) + 1 / varc
+      
+      #Preparing to get the inverse using UD^{-1}t(U) = crossprod(t(U)/sqrt(diag(D)))
       varceiU <- t(varctempei$vectors)/sqrt(abs(varcei))
-      #varceiD <- varcei$values
+      
+      ##Calculate the C matrix
       varc <- crossprod(varceiU)#varceiU %*% diag(1/abs(varceiD)) %*% t(varceiU)
+      
       #varc <- (varc+t(varc))/2
       betac <- array(rmvnorm(1, varc %*% mean, varc))
       if(length(is.na(betac))) betac[which(is.na(betac))] <- 0
