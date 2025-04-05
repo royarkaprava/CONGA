@@ -184,8 +184,10 @@ CONGAfitNewer <- function(X, Total_itr = 5000, lambdashrk=1, burn = 2500){
       varc <- crossprod(varceiU)#varceiU %*% diag(1/abs(varceiD)) %*% t(varceiU)
       #varc <- (varc+t(varc))/2
       
-      ###
+      ###Generate the Candidate beta
       betac <- array(rmvnorm(1, varc %*% mean, varc))
+      
+      ###Next do MH step whether to accept or reject unlike Wang
       if(length(is.na(betac))) betac[which(is.na(betac))] <- 0
       #const <- as.numeric(sdb / sqrt(crossprod(betac - Beta[i, -i])))
       #if(const>1){const = 1}
