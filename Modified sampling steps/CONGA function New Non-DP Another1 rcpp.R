@@ -2,7 +2,7 @@ Rcpp::sourceCpp("/GitHub/CONGA/Modified sampling steps/pocal.cpp")
 
 #lambdashrk is the shrinkage parameter, similar to the one in Wang (2012).
 
-CONGAfitNewerHS <- function(X, Total_itr = 5000, lambdashrk=1, burn = 2500){
+CONGAfitNewer <- function(X, Total_itr = 5000, lambdashrk=1, burn = 2500){
   library(mvtnorm)
   library(bayesm)
   library(armspp)
@@ -122,16 +122,10 @@ CONGAfitNewerHS <- function(X, Total_itr = 5000, lambdashrk=1, burn = 2500){
     tryout <- try(pdxid <- diag(solve(cov(atan(X)^(po)) + const*diag(c))), silent = T)
     const <- 10*const
   }
-  select_all_but_diag <- function(x) matrix(x[lower.tri(x, diag = F) | upper.tri(x, diag = F)], nrow = nrow(x) - 1, ncol = ncol(x))
-  
   pb <- txtProgressBar(min = itr, max = Total_itr, style = 3)
   gamout <- dgamma(lambda,alpha+X, betalam + 1)
   sdlam <- 1e-3
   
-  lamhorse <- matrix(1, c, c-1)
-  tauhorse <- 10#rep(10, m)
-  xihorse <- 1#tauhorse/10
-  nuhorse  <- matrix(1, c, c-1)
   uplam <- function(k){
     lambdakc <- rgamma(1, alpha+sum(X[, k]), betalam + Ti)#lambda[k] + rnorm(1, sd=sdlam)
     
@@ -168,69 +162,14 @@ CONGAfitNewerHS <- function(X, Total_itr = 5000, lambdashrk=1, burn = 2500){
     bsigma <- bsigma + t(bsigma)
     Betac  <- Beta
     
-    B1 <- t(select_all_but_diag(t(Beta)))
-    tauhorse   <- sqrt(1/rgamma(1, c*(c-1)/2+1/2, 1/xihorse + sum(B1^2/2/lamhorse^2)))
-    xihorse   <- 1/rgamma(1, 1, 1+1/tauhorse^2)
+    # Assuming you have the following variables:
+    # X, lambda, Beta, beta, Z, pdx, pdxid, index, po, s1, s0, lambdashrk
     
-    #t1 <- proc.time()
-    for(i in 1:c){
-      #Update the Horse shoe parameters
-      lamhorse[i, ] <- sqrt(1/rgamma(c-1, 1, 1/nuhorse[i, ] + Beta[i, -i]^2/2/tauhorse^2))
-      nuhorse[i, ] <- 1/rgamma(c-1, 1, 1+1/lamhorse[i,]^2)
-      
-      priorbeta <- 1/(lamhorse[i, ]^2 * tauhorse^2)
-      
-      mean <- - pdx[i, -i] 
-      varc <- bsigma[i,-i] 
-      varctemp <- matrix(0, c-1, c-1)
-      #Beta[-i, -i] is the Omega_11
-      varctemp <- Beta[-i, -i]
-      
-      #Unlike Wang the diagonal will be precomputed as above
-      diag(varctemp) <- pdxid[-i]
-      
-      #Calculating inverse of Omega_11 using eigen; first get eigen
-      
-      varctempei <- eigen(varctemp)
-      #Get the inverse as UD^{-1}t(U) = crossprod(t(U)/sqrt(diag(D)))
-      varctempeiU <- t(varctempei$vectors)/sqrt(abs(varctempei$values))
-      #varctempeiD <- varctempei$values
-      varctemp <- crossprod(varctempeiU) #varctempeiU %*% diag(1/abs(varctempeiD)) %*% t(varctempeiU)
-      
-      ##Now calculate Cinv and its eigen following 1(b)
-      varinv <- (var(atan(X[, i])^po)* Ti)* varctemp + diag(1 / varc)
-      varcei <- eigen(varinv)
-      
-      #Get the inverse of Cinv using again UD^{-1}t(U) = crossprod(t(U)/sqrt(diag(D)))
-      varceiU <- t(varcei$vectors)/sqrt(abs(varcei$values))
-      #varceiD <- varcei$values
-      varc <- crossprod(varceiU)
-      
-      ###Generate the Candidate beta
-      betac <- array(mvtnorm::rmvnorm(1, varc %*% mean, varc))
-      #rmvnorm.canonical(1, mean, varcei)#
-      
-      ###Next do MH step whether to accept or reject unlike Wang
-      if(length(is.na(betac))) betac[which(is.na(betac))] <- 0
-      
-      Betac[i, -i] <- betac 
-      Betac[- i, i] <- betac 
-      betac   <-  Betac[i, -i]
-      R <- llhoodb(i, X, lambda, Betac[t(index)]) - llhoodb(i, X, lambda, beta)
-      R <- R + sum((dnorm(Betac[i, -i], 0, bsigma[i, -i], log = T) - dnorm(Beta[i, -i], 0, bsigma[i, -i], log = T)))
-      
-      Q <- Beta[- i, i]*(-varinv %*% Beta[- i, i]/2+mean)-betac*(-varinv %*% betac/2 +mean) #dmvnorm(Beta[- i, i], varc %*% mean, varc, log = T) - dmvnorm(betac, varc %*% mean, varc, log = T)
-      R <- R + sum(Q)
-      u <- runif(1)
-      
-      if(is.na(R) == T || is.nan(R) == T){R = 1}
-      if(log(u) < R)
-      {beta <- Betac[t(index)]
-      Beta <- Betac
-      acbeta <- acbeta + 1}
-    }
-    #t2 <- proc.time()
-    #t2-t1
+    result <- update_beta_mh_cpp(Beta, beta, Z, s1, s0, pdx, pdxid, X, lambda, index, Ti, po, lambdashrk)
+    Beta <- result$Beta
+    beta <- result$beta
+    accepted <- result$acbeta
+    
     beta_p[[itr]] <- beta
     
     Sys.sleep(0.1)
