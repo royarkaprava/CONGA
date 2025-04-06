@@ -2,10 +2,11 @@ Rcpp::sourceCpp("/GitHub/CONGA/Modified sampling steps/pocal.cpp")
 
 #lambdashrk is the shrinkage parameter, similar to the one in Wang (2012).
 
-CONGAfitNewer <- function(X, Total_itr = 5000, lambdashrk=1, burn = 2500){
+CONGAfitNewerLas <- function(X, Total_itr = 5000, lambdashrk=1, burn = 2500){
   library(mvtnorm)
   library(bayesm)
   library(armspp)
+  library(statmod)
   
   Ti <- nrow(X)
   c  <- ncol(X)
@@ -124,38 +125,54 @@ CONGAfitNewer <- function(X, Total_itr = 5000, lambdashrk=1, burn = 2500){
   pb <- txtProgressBar(min = itr, max = Total_itr, style = 3)
   gamout <- dgamma(lambda,alpha+X, betalam + 1)
   sdlam <- 1e-3
+  
+  uplam <- function(k){
+    lambdakc <- rgamma(1, alpha+sum(X[, k]), betalam + Ti)#lambda[k] + rnorm(1, sd=sdlam)
+    
+    lambdac <- lambda
+    lambdac[k] <- lambdakc
+    
+    R <- llhoodl(k, X, lambdac, beta) - llhoodl(k, X, lambda, beta)
+    R <- R + (dgamma(lambdakc, alpha, betalam, log = T) - dgamma(lambda[k], alpha, betalam, log = T)) 
+    
+    #R <- R - (dgamma(lambdakc, alpha+sum(X[, k]), betalam + Ti, log = T) + dgamma(lambda[k], alpha+ sum(X[, k]), betalam + Ti, log = T)) 
+    
+    Q <- dgamma(lambda[k], alpha+sum(X[, k]), betalam + Ti, log = T) - dgamma(lambdakc, alpha+sum(X[, k]), betalam + Ti, log = T)
+    R <- R + Q
+    u <- runif(1)
+    
+    ret <- lambda[k]
+    if(is.na(R) == T || is.nan(R) == T){R = 1}
+    if(log(u) < R)
+    {ret <- lambdac[k]}
+    
+    return(ret) 
+  }
+  select_all_but_diag <- function(x) matrix(x[lower.tri(x, diag = F) | upper.tri(x, diag = F)], nrow = nrow(x) - 1, ncol = ncol(x))
+  
   while(itr < Total_itr){
     itr <- itr + 1
     
-    for(k in 1:c){
-      lambdakc <- rgamma(1, alpha+sum(X[, k]), betalam + Ti)#lambda[k] + rnorm(1, sd=sdlam)
-      
-      lambdac <- lambda
-      lambdac[k] <- lambdakc
-      
-      R <- llhoodl(k, X, lambdac, beta) - llhoodl(k, X, lambda, beta)
-      R <- R + (dgamma(lambdakc, alpha, betalam, log = T) - dgamma(lambda[k], alpha, betalam, log = T)) 
-      
-      #R <- R - (dgamma(lambdakc, alpha+sum(X[, k]), betalam + Ti, log = T) + dgamma(lambda[k], alpha+ sum(X[, k]), betalam + Ti, log = T)) 
-      
-      Q <- dgamma(lambda[k], alpha+sum(X[, k]), betalam + Ti, log = T) - dgamma(lambdakc, alpha+sum(X[, k]), betalam + Ti, log = T)
-      R <- R + Q
-      u <- runif(1)
-      
-      
-      if(is.na(R) == T || is.nan(R) == T){R = 1}
-      if(log(u) < R)
-      {lambda[k] <- lambdac[k]}
-      
-    }
+    out <- lapply(1:c, uplam)
+    lambda <- unlist(out)
     
     lambda_p[[itr]] <- lambda
     
-    bsigma <- matrix(0, c, c)
-    bsigma[row(bsigma)>col(bsigma)] <- Z * rep(s1, betalen) + (1-Z) * rep(s0, betalen)
-    bsigma <- bsigma + t(bsigma)
+    #B1 <- t(select_all_but_diag(t(Beta)))
+    Betad <- Beta
+    diag(Betad) <- rep(1, c)
+    Ugrap <- matrix(rinvgauss(c^2, abs(lambdashrk/array(Betad)), rep(lambdashrk^2, c^2)), c, c)
+    Ugrapt <- t(Ugrap)
+    Ugrap[row(Ugrap) > col(Ugrap)] <- Ugrapt[row(Ugrapt) > col(Ugrapt)]
+    
+    bsigma <- 1 / Ugrap 
+    
+    #bsigma <- matrix(0, c, c)
+    #bsigma[row(bsigma)>col(bsigma)] <- Z * rep(s1, betalen) + (1-Z) * rep(s0, betalen)
+    #bsigma <- bsigma + t(bsigma)
     Betac  <- Beta
     
+    #t1 <- proc.time()
     for(i in 1:c){
       mean <- - pdx[i, -i] 
       varc <- bsigma[i,-i] 
@@ -209,6 +226,8 @@ CONGAfitNewer <- function(X, Total_itr = 5000, lambdashrk=1, burn = 2500){
       acbeta <- acbeta + 1}
     }
     
+    #t2 <- proc.time()
+    #t2-t1
     beta_p[[itr]] <- beta
     
     Sys.sleep(0.1)
