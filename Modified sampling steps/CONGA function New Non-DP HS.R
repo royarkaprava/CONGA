@@ -168,8 +168,8 @@ CONGAfitNewerHS <- function(X, Total_itr = 5000, lambdashrk=1, burn = 2500){
     Betac  <- Beta
     
     B1 <- t(select_all_but_diag(t(Beta)))
-    tauhorse   <- sqrt(1/rgamma(1, c*(c-1)/2+1/2, 1/xihorse + sum(B1^2/2/lamhorse^2)))
-    xihorse   <- 1/rgamma(1, 1, 1+1/tauhorse^2)
+    tauhorse   <- 10#sqrt(1/rgamma(1, c*(c-1)/2+1/2, 1/xihorse + sum(B1^2/2/lamhorse^2)))
+    #xihorse   <- 1/rgamma(1, 1, 1+1/tauhorse^2)
     
     #t1 <- proc.time()
     for(i in 1:c){
