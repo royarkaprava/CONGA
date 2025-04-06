@@ -217,7 +217,7 @@ CONGAfitNewerHS <- function(X, Total_itr = 5000, lambdashrk=1, burn = 2500){
       Betac[- i, i] <- betac 
       betac   <-  Betac[i, -i]
       R <- llhoodb(i, X, lambda, Betac[t(index)]) - llhoodb(i, X, lambda, beta)
-      R <- R + sum((dnorm(Betac[i, -i], 0, bsigma[i, -i], log = T) - dnorm(Beta[i, -i], 0, bsigma[i, -i], log = T)))
+      R <- R + sum((dnorm(Betac[i, -i], 0, 1/priorbeta, log = T) - dnorm(Beta[i, -i], 0, 1/priorbeta, log = T)))
       
       Q <- Beta[- i, i]*(-varinv %*% Beta[- i, i]/2+mean)-betac*(-varinv %*% betac/2 +mean) #dmvnorm(Beta[- i, i], varc %*% mean, varc, log = T) - dmvnorm(betac, varc %*% mean, varc, log = T)
       R <- R + sum(Q)
