@@ -65,11 +65,10 @@ CONGAfitNewerSS <- function(X, Total_itr = 5000, lambdashrk=1, burn = 2500){
     Beta <- matrix(0, c, c)
     Beta[row(Beta)>col(Beta)] <- beta
     Beta <- Beta + t(Beta)
-    sum <- 0
-    for(i in 1:Ti){
-      sum = sum + sum(-Beta[j, -j]*(atan(X[i, -j])^po)*(atan(X[i, j])^po))- log(numerlike1(i, j, lambda, beta))
-    }
-    return(sum)
+    #sum <- 0
+    ret <- sum(-Beta[j, -j]*(atan(X[, -j])^po)*(atan(X[, j])^po))- unlist(sapply(1:Ti, FUN=function(i){return(log(numerlike1(i, j, lambda, beta)))})) 
+    
+    return(sum(ret))
   }
   
   atanmean <- function(theta, apnum = 100){
@@ -153,7 +152,7 @@ CONGAfitNewerSS <- function(X, Total_itr = 5000, lambdashrk=1, burn = 2500){
   
   Z <- matrix(1, c, c-1)
   Z1 <- matrix(1, c, c)
-  v1 <- 10#rep(10, m)
+  v1 <- 5#rep(10, m)
   v0 <- 0.05#tauhorse/10
   Taugrap  <- matrix(1, c, c-1)
   p <- 0.5
