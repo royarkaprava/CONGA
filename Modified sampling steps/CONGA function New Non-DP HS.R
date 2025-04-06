@@ -172,6 +172,7 @@ CONGAfitNewerHS <- function(X, Total_itr = 5000, lambdashrk=1, burn = 2500){
     tauhorse   <- sqrt(1/rgamma(1, c*(c-1)/2+1/2, 1/xihorse + sum(B1^2/2/lamhorse^2)))
     xihorse   <- 1/rgamma(1, 1, 1+1/tauhorse^2)
     
+    #t1 <- proc.time()
     for(i in 1:c){
       #Update the Horse shoe parameters
       lamhorse[i, ] <- sqrt(1/rgamma(c-1, 1, 1/nuhorse[i, ] + Beta[i, -i]^2/2/tauhorse^2))
@@ -197,7 +198,8 @@ CONGAfitNewerHS <- function(X, Total_itr = 5000, lambdashrk=1, burn = 2500){
       varctemp <- crossprod(varctempeiU) #varctempeiU %*% diag(1/abs(varctempeiD)) %*% t(varctempeiU)
       
       ##Now calculate Cinv and its eigen following 1(b)
-      varcei <- eigen((var(atan(X[, i])^po+lambdashrk) * Ti)* varctemp + diag(1 / varc))
+      varinv <- (var(atan(X[, i])^po)* Ti+lambdashrk)* varctemp + diag(1 / varc)
+      varcei <- eigen(varinv)
       
       #Get the inverse of Cinv using again UD^{-1}t(U) = crossprod(t(U)/sqrt(diag(D)))
       varceiU <- t(varcei$vectors)/sqrt(abs(varcei$values))
@@ -205,7 +207,8 @@ CONGAfitNewerHS <- function(X, Total_itr = 5000, lambdashrk=1, burn = 2500){
       varc <- crossprod(varceiU)
       
       ###Generate the Candidate beta
-      betac <- array(rmvnorm(1, varc %*% mean, varc))
+      betac <- array(mvtnorm::rmvnorm(1, varc %*% mean, varc))
+      #rmvnorm.canonical(1, mean, varcei)#
       
       ###Next do MH step whether to accept or reject unlike Wang
       if(length(is.na(betac))) betac[which(is.na(betac))] <- 0
@@ -216,8 +219,8 @@ CONGAfitNewerHS <- function(X, Total_itr = 5000, lambdashrk=1, burn = 2500){
       R <- llhoodb(i, X, lambda, Betac[t(index)]) - llhoodb(i, X, lambda, beta)
       R <- R + sum((dnorm(Betac[i, -i], 0, bsigma[i, -i], log = T) - dnorm(Beta[i, -i], 0, bsigma[i, -i], log = T)))
       
-      Q <- dmvnorm(Beta[- i, i], varc %*% mean, varc, log = T) - dmvnorm(betac, varc %*% mean, varc, log = T)
-      R <- R + Q
+      Q <- Beta[- i, i]*(-varinv %*% Beta[- i, i]/2+mean)-betac*(-varinv %*% betac/2 +mean) #dmvnorm(Beta[- i, i], varc %*% mean, varc, log = T) - dmvnorm(betac, varc %*% mean, varc, log = T)
+      R <- R + sum(Q)
       u <- runif(1)
       
       if(is.na(R) == T || is.nan(R) == T){R = 1}
@@ -226,7 +229,8 @@ CONGAfitNewerHS <- function(X, Total_itr = 5000, lambdashrk=1, burn = 2500){
       Beta <- Betac
       acbeta <- acbeta + 1}
     }
-    
+    #t2 <- proc.time()
+    #t2-t1
     beta_p[[itr]] <- beta
     
     Sys.sleep(0.1)

@@ -179,7 +179,7 @@ CONGAfitNewer <- function(X, Total_itr = 5000, lambdashrk=1, burn = 2500){
       
       #Get the eigen values of Cinv
       
-      varcei <- (var(atan(X[, i])^po+lambdashrk) * Ti)/abs(varctempei$values) + 1 / varc
+      varcei <- (var(atan(X[, i])^po)*Ti+lambdashrk) /abs(varctempei$values) + 1 / varc
       
       #Preparing to get the inverse using UD^{-1}t(U) = crossprod(t(U)/sqrt(diag(D)))
       varceiU <- t(varctempei$vectors)/sqrt(abs(varcei))

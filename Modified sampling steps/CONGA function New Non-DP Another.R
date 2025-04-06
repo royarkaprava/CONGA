@@ -176,16 +176,17 @@ CONGAfitNewer <- function(X, Total_itr = 5000, lambdashrk=1, burn = 2500){
       varctemp <- crossprod(varctempeiU) #varctempeiU %*% diag(1/abs(varctempeiD)) %*% t(varctempeiU)
       
       ##Now calculate Cinv and its eigen following 1(b)
-      varcei <- eigen((var(atan(X[, i])^po+lambdashrk) * Ti)* varctemp + diag(1 / varc))
+      varinv <- (var(atan(X[, i])^po)* Ti+lambdashrk)* varctemp + diag(1 / varc)
+      varcei <- eigen(varinv)
       
       #Get the inverse of Cinv using again UD^{-1}t(U) = crossprod(t(U)/sqrt(diag(D)))
       varceiU <- t(varcei$vectors)/sqrt(abs(varcei$values))
       #varceiD <- varcei$values
-      varc <- crossprod(varceiU)#varceiU %*% diag(1/abs(varceiD)) %*% t(varceiU)
-      #varc <- (varc+t(varc))/2
+      varc <- crossprod(varceiU)
       
       ###Generate the Candidate beta
-      betac <- array(rmvnorm(1, varc %*% mean, varc))
+      betac <- array(mvtnorm::rmvnorm(1, varc %*% mean, varc))
+      #rmvnorm.canonical(1, mean, varcei)#
       
       ###Next do MH step whether to accept or reject unlike Wang
       if(length(is.na(betac))) betac[which(is.na(betac))] <- 0
@@ -198,7 +199,7 @@ CONGAfitNewer <- function(X, Total_itr = 5000, lambdashrk=1, burn = 2500){
       R <- llhoodb(i, X, lambda, Betac[t(index)]) - llhoodb(i, X, lambda, beta)
       R <- R + sum((dnorm(Betac[i, -i], 0, bsigma[i, -i], log = T) - dnorm(Beta[i, -i], 0, bsigma[i, -i], log = T)))
       
-      Q <- dmvnorm(Beta[- i, i], varc %*% mean, varc, log = T) - dmvnorm(betac, varc %*% mean, varc, log = T)
+      Q <- Beta[- i, i]*(-varinv %*% Beta[- i, i]/2+mean)-betac*(-varinv %*% betac/2 +mean) #dmvnorm(Beta[- i, i], varc %*% mean, varc, log = T) - dmvnorm(betac, varc %*% mean, varc, log = T)
       R <- R + Q
       u <- runif(1)
       
