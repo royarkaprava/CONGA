@@ -198,7 +198,7 @@ CONGAfitNewerHS <- function(X, Total_itr = 5000, lambdashrk=1, burn = 2500){
       varctemp <- crossprod(varctempeiU) #varctempeiU %*% diag(1/abs(varctempeiD)) %*% t(varctempeiU)
       
       ##Now calculate Cinv and its eigen following 1(b)
-      varinv <- (var(atan(X[, i])^po)* Ti)* varctemp + diag(1 / varc)
+      varinv <- (var(atan(X[, i])^po)* Ti)* varctemp + diag(priorbeta)
       varcei <- eigen(varinv)
       
       #Get the inverse of Cinv using again UD^{-1}t(U) = crossprod(t(U)/sqrt(diag(D)))

@@ -197,7 +197,7 @@ CONGAfitNewer <- function(X, Total_itr = 5000, lambdashrk=1, burn = 2500){
       #betac <- Beta[i, -i] + const*(betac - Beta[i, -i])
       Betac[i, -i] <- betac 
       Betac[- i, i] <- betac 
-      betac   <-  Betac[i, -i]
+      #betac   <-  Betac[i, -i]
       R <- llhoodb(i, X, lambda, Betac[t(index)]) - llhoodb(i, X, lambda, beta)
       R <- R + sum((dnorm(Betac[i, -i], 0, bsigma[i, -i], log = T) - dnorm(Beta[i, -i], 0, bsigma[i, -i], log = T)))
       
