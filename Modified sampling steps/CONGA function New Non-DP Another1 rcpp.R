@@ -152,7 +152,7 @@ CONGAfitNewer <- function(X, Total_itr = 5000, lambdashrk=1, burn = 2500){
   while(itr < Total_itr){
     itr <- itr + 1
     
-    out <- lapply(1:c, uplam)
+    out <- parallel::mcmapply(1:c, FUN=uplam, mc.cores = 1)
     lambda <- unlist(out)
     
     lambda_p[[itr]] <- lambda
@@ -165,7 +165,11 @@ CONGAfitNewer <- function(X, Total_itr = 5000, lambdashrk=1, burn = 2500){
     # Assuming you have the following variables:
     # X, lambda, Beta, beta, Z, pdx, pdxid, index, po, s1, s0, lambdashrk
     
-    result <- update_beta_mh_cpp(Beta, beta, Z, s1, s0, pdx, pdxid, X, lambda, index, Ti, po, lambdashrk)
+    #t1 = proc.time()
+    result <- update_beta_mh_cpp(Beta, beta, s1, s0, pdx, pdxid, X, lambda, index, Ti, po, lambdashrk)
+    #t2 = proc.time()
+    
+    #t2-t1
     Beta <- result$Beta
     beta <- result$beta
     accepted <- result$acbeta

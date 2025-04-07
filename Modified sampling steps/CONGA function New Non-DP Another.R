@@ -39,34 +39,25 @@ CONGAfitNewer <- function(X, Total_itr = 5000, lambdashrk=1, burn = 2500){
     return(numll)
   }
   
-  numerlike1 <- function(i, j, lambda, beta, apnum = 100){
-    Beta <- matrix(0, c, c)
-    Beta[row(Beta)>col(Beta)] <- beta
-    Beta <- Beta + t(Beta)
+  numerlike1 <- function(i, j, lambda, Beta, apnum = 100){
     poisd <- dpois(0:apnum, lambda[j]) * exp(lambda[j])
     betapart <- exp(sum(-Beta[j, -j]*(atan(X[i, -j])^po))*(atan(0:apnum))^po)
     return(sum(poisd * betapart))
   }
   
-  llhoodl <- function(j, X, lambda, beta, apnum = 100){
+  llhoodl <- function(j, X, lambda, Beta, apnum = 100){
     #ret <- rep(0, Ti)
     #for(k in 1:Ti){
-    Beta <- matrix(0, c, c)
-    Beta[row(Beta)>col(Beta)] <- beta
-    Beta <- Beta + t(Beta)
     
     ret <- -lambda[j]+X[,j]*log(lambda[j]) + (lambda[j])
-    ret <- (ret) - unlist(sapply(1:Ti, FUN=function(i){return(log(numerlike1(i, j, lambda, beta)))})) 
+    ret <- (ret) - unlist(sapply(1:Ti, FUN=function(i){return(log(numerlike1(i, j, lambda, Beta)))})) 
     
     return(sum(ret))
   } 
   
-  llhoodb <- function(j, X, lambda, beta, apnum = 100){
-    Beta <- matrix(0, c, c)
-    Beta[row(Beta)>col(Beta)] <- beta
-    Beta <- Beta + t(Beta)
+  llhoodb <- function(j, X, lambda, Beta, apnum = 100){
     #sum <- 0
-    ret <- sum(-Beta[j, -j]*(atan(X[, -j])^po)*(atan(X[, j])^po))- unlist(sapply(1:Ti, FUN=function(i){return(log(numerlike1(i, j, lambda, beta)))})) 
+    ret <- sum(-Beta[j, -j]*(atan(X[, -j])^po)*(atan(X[, j])^po))- unlist(sapply(1:Ti, FUN=function(i){return(log(numerlike1(i, j, lambda, Beta)))})) 
     
     return(sum(ret))
   }
@@ -133,7 +124,7 @@ CONGAfitNewer <- function(X, Total_itr = 5000, lambdashrk=1, burn = 2500){
       lambdac <- lambda
       lambdac[k] <- lambdakc
       
-      R <- llhoodl(k, X, lambdac, beta) - llhoodl(k, X, lambda, beta)
+      R <- llhoodl(k, X, lambdac, Beta) - llhoodl(k, X, lambda, Beta)
       R <- R + (dgamma(lambdakc, alpha, betalam, log = T) - dgamma(lambda[k], alpha, betalam, log = T)) 
       
       #R <- R - (dgamma(lambdakc, alpha+sum(X[, k]), betalam + Ti, log = T) + dgamma(lambda[k], alpha+ sum(X[, k]), betalam + Ti, log = T)) 
@@ -195,7 +186,7 @@ CONGAfitNewer <- function(X, Total_itr = 5000, lambdashrk=1, burn = 2500){
       Betac[i, -i] <- betac 
       Betac[- i, i] <- betac 
       betac   <-  Betac[i, -i]
-      R <- llhoodb(i, X, lambda, Betac[t(index)]) - llhoodb(i, X, lambda, beta)
+      R <- llhoodb(i, X, lambda, Betac) - llhoodb(i, X, lambda, Beta)
       R <- R + sum((dnorm(Betac[i, -i], 0, bsigma[i, -i], log = T) - dnorm(Beta[i, -i], 0, bsigma[i, -i], log = T)))
       
       Q <- Beta[- i, i]*(-varinv %*% Beta[- i, i]/2+mean)-betac*(-varinv %*% betac/2 +mean) #dmvnorm(Beta[- i, i], varc %*% mean, varc, log = T) - dmvnorm(betac, varc %*% mean, varc, log = T)
