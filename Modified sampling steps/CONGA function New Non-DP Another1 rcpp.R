@@ -166,15 +166,17 @@ CONGAfitNewer <- function(X, Total_itr = 5000, lambdashrk=1, burn = 2500){
     # X, lambda, Beta, beta, Z, pdx, pdxid, index, po, s1, s0, lambdashrk
     
     #t1 = proc.time()
-    result <- update_beta_mh_cpp(Beta, beta, s1, s0, pdx, pdxid, X, lambda, index, Ti, po, lambdashrk)
+    result <- update_beta_mh_cpp(Beta, s1, s0, pdx, pdxid, X, lambda, index, Ti, po, lambdashrk)
     #t2 = proc.time()
     
     #t2-t1
     Beta <- result$Beta
-    beta <- result$beta
+    beta <- Beta[t(index)]
     accepted <- result$acbeta
     
     beta_p[[itr]] <- beta
+    
+    #print(range(beta))
     
     Sys.sleep(0.1)
     # update progress bar
