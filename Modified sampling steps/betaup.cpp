@@ -158,14 +158,14 @@ double compute_Q(const arma::vec& betavec_old, const arma::vec& betavec_new,
 }
 
 // [[Rcpp::export]]
-List update_beta_mh_cpp(arma::mat Beta, arma::vec beta,
+List update_beta_mh_cpp(arma::mat Beta,
                         double s1, double s0, const arma::mat& pdx,
                         const arma::vec& pdxid, const arma::mat& X,
                         const arma::vec& lambda, const arma::uvec& index,
                         int Ti, double po, double lambdashrk) {
   
   int c = X.n_cols;
-  int betalen = beta.n_elem;
+  int betalen = c*(c-1)/2;
   arma::mat bsigma = arma::zeros(c, c);
   
   // Create the sigmas vector for the bsigma matrix
@@ -268,7 +268,7 @@ List update_beta_mh_cpp(arma::mat Beta, arma::vec beta,
     if (std::isnan(R) || std::isinf(R)) R = 1.0;
 
     // Accept or reject the proposal
-    if (std::log(R::runif(0, 1)) < R) {
+    if (R::runif(0, 1) < R) {
       Beta = Betac;
       acbeta++;
     }
@@ -276,7 +276,6 @@ List update_beta_mh_cpp(arma::mat Beta, arma::vec beta,
   
   return List::create(
     Named("Beta") = Beta,
-    Named("beta") = beta,
     Named("acbeta") = acbeta
   );
 }
