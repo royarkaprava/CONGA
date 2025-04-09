@@ -28,6 +28,7 @@ pvars <- pnorm(rawvars)
 X <- qpois(pvars, 5)
 
 fitN <- CONGAfitNewerSS(X)
+
 beta_p <- fitN$BetaMCMC[1:1000]
 #Post process to construct the graph. This is a different appraoch from the paper.
 #This works better to generate the ROC curve. This will be updated in the next revision of the paper
@@ -54,7 +55,7 @@ Qvec   <- apply(retu, 1, posmat)
 #Increase in the cutoff would lead to sparser graph and decrease in it
 #would lower the sparsity.
 
-Cutoff <- 0.2 #To construct ROC, we need to vary this cutoff
+Cutoff <- 0.5 #To construct ROC, we need to vary this cutoff
 Qvec   <- (abs(Qvec - 0.5)/0.5>Cutoff)
 
 

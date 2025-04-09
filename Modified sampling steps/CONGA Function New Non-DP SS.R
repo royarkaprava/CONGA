@@ -143,7 +143,7 @@ CONGAfitNewerSS <- function(X, Total_itr = 5000, lambdashrk=1, burn = 2500){
   
   Z <- matrix(1, c, c-1)
   Z1 <- matrix(1, c, c)
-  v1 <- 5#rep(10, m)
+  v1 <- 10#rep(10, m)
   v0 <- 0.05#tauhorse/10
   Taugrap  <- matrix(1, c, c-1)
   p <- 0.5
