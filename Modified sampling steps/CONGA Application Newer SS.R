@@ -54,7 +54,7 @@ Qvec   <- apply(retu, 1, posmat)
 #Increase in the cutoff would lead to sparser graph and decrease in it
 #would lower the sparsity.
 
-Cutoff <- 0.5 #To construct ROC, we need to vary this cutoff
+Cutoff <- 0.2 #To construct ROC, we need to vary this cutoff
 Qvec   <- (abs(Qvec - 0.5)/0.5>Cutoff)
 
 

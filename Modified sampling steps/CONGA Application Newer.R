@@ -2,7 +2,7 @@ library(combinat)
 
 Ti <- 100
 
-c <- 30
+c <- 50
 
 Posdef <- function (n, ev = runif(n, 0, 3))
 {
@@ -26,6 +26,8 @@ pdmat0[which(abs(pdmat0) < 1)] <- 0 #Generate sparse precision matrix
 rawvars <- mvtnorm::rmvnorm(Ti, mean=rep(0, c), sigma=solve(pdmat0))
 pvars <- pnorm(rawvars)
 X <- qpois(pvars, 5)
+
+Total_itr=1000
 
 fitN <- CONGAfitNewer(X)
 beta_p <- fitN$BetaMCMC[1:1000]

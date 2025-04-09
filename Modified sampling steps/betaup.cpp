@@ -157,6 +157,14 @@ double compute_Q(const arma::vec& betavec_old, const arma::vec& betavec_new,
   return log_density_old - log_density_new;
 }
 
+arma::vec sample_canonical_mvnorm(const arma::mat& Q, const arma::mat& Qhalf, const arma::vec& eta) {
+  //arma::mat L = arma::chol(Q); // Q = L * L^T
+  arma::vec mu = arma::solve(Q, eta); // mu = Q^{-1} * eta
+  arma::vec z = arma::randn(Q.n_rows);
+  arma::vec y = arma::solve(Qhalf, z); // L^T y = z
+  return mu + y;
+}
+
 // [[Rcpp::export]]
 List update_beta_mh_cpp(arma::mat Beta,
                         double s1, double s0, const arma::mat& pdx,
@@ -212,26 +220,25 @@ List update_beta_mh_cpp(arma::mat Beta,
     
     arma::mat varceiU = eigvec.t();
     for (size_t r = 0; r < varceiU.n_rows; ++r) {
-      varceiU.row(r) /= std::sqrt(std::abs(varcei(r)));
+      varceiU.row(r) *= std::sqrt(std::abs(varcei(r)));
     }
     
-    arma::mat varC = varceiU.t() * varceiU;
+    arma::mat varCinv = varceiU.t() * varceiU;
     
     // Sample from the proposal distribution
-    arma::vec betac = rmvnorm(1, varC * mean, varC).t();
+    arma::vec betac = sample_canonical_mvnorm(varCinv, varceiU, mean); //rmvnorm(1, varC * mean, varC).t();
     
     // Replace any NaNs in betac
     betac.elem(find_nonfinite(betac)).zeros();
     
-    arma::vec betacc = arma::zeros(c);
-    
-    int idx = 0;
-    for (int j = 0; j < c; ++j) {
-      if (j != i) {
-        betacc(j) = betac(idx);
-        ++idx;
-      }
+    arma::vec betacc(c, arma::fill::zeros);
+    if (i > 0) {
+      betacc.subvec(0, i - 1) = betac.subvec(0, i - 1);
     }
+    if (i < c - 1) {
+      betacc.subvec(i + 1, c - 1) = betac.subvec(i, c - 2);
+    }
+    
     Betac.row(i) = betacc.t(); // betac has to be updated to match the size
     // Update the first column, excluding the diagonal
     Betac.col(i) = betacc;
@@ -250,14 +257,15 @@ List update_beta_mh_cpp(arma::mat Beta,
     arma::vec norm_old(betavec_old.n_elem);
 
     // Loop through each element of betavec_new and betavec_old and compute the normal densities
-    for (size_t i = 0; i < betavec_new.n_elem; ++i) {
-      norm_new(i) = R::dnorm(betavec_new(i), 0.0, varc(i), true);  // Use varc(i) as the std deviation
-      norm_old(i) = R::dnorm(betavec_old(i), 0.0, varc(i), true);  // Use varc(i) as the std deviation
-    }
+    // Loop through each element of betavec_new and betavec_old and compute the normal densities
+    // for (size_t i = 0; i < betavec_new.n_elem; ++i) {
+    //   norm_new(i) = R::dnorm(betavec_new(i), 0.0, varc(i), true);  // Use varc(i) as the std deviation
+    //   norm_old(i) = R::dnorm(betavec_old(i), 0.0, varc(i), true);  // Use varc(i) as the std deviation
+    // }
     // Sum the elements to get the scalar result for the acceptance ratio
-    R += arma::accu(norm_new - norm_old);
-
-    arma::vec Q = betavec_old%(-varC * betavec_old/2+mean)-betavec_new%(-varC * betac/2 +mean);
+    R += arma::accu(-pow(betavec_new,2)/varc + pow(betavec_old,2)/varc)/2;
+    
+    arma::vec Q = betavec_old%(-varCinv * betavec_old/2+mean)-betavec_new%(-varCinv * betac/2 +mean);
       
     //double Q = dmvnorm_cpp(betavec_old, varC * mean, varC) -
     //  dmvnorm_cpp(betavec_new, varC * mean, varC);

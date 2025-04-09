@@ -153,8 +153,19 @@ CONGAfitNewerSS <- function(X, Total_itr = 5000, lambdashrk=1, burn = 2500){
   while(itr < Total_itr){
     itr <- itr + 1
     
-    out <- lapply(1:c, uplam)
-    lambda <- unlist(out)
+    lambdac <- rgamma(c, alpha+colSums(X), betalam + Ti)
+    R <- lapply(1:c, FUN=function(k){llhoodl(k, X, lambdac, Beta) - llhoodl(k, X, lambda, Beta)})
+    
+    R <- unlist(R) + dgamma(lambdac, alpha, betalam, log = T) - dgamma(lambda, alpha, betalam, log = T) 
+    
+    #R <- R - (dgamma(lambdakc, alpha+sum(X[, k]), betalam + Ti, log = T) + dgamma(lambda[k], alpha+ sum(X[, k]), betalam + Ti, log = T)) 
+    
+    Q <- dgamma(lambda, alpha+colSums(X), betalam + Ti, log = T) - dgamma(lambdac, alpha+colSums(X), betalam + Ti, log = T)
+    R <- R + Q
+    u <- runif(c)
+    
+    lambda <- (log(u) > R)*lambda + (log(u) < R)*lambdac
+    
     
     lambda_p[[itr]] <- lambda
     
