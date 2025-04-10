@@ -1,4 +1,4 @@
-rocvec <- function(fitN){
+rocvec <- function(fitN, pdmat0){
   cut <- c(1:18)/20
   k <- 0
   FP = 0
@@ -62,6 +62,6 @@ rocvec <- function(fitN){
   return(list(FP=FP, TP=TP))
 }
 
-rc <- rocvec(fitN)
+rc <- rocvec(fitN, pdmat0)
 
 plot(rc$FP, rc$TP, type="l", xlab="False Positive", ylab="True Positive")
