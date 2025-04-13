@@ -4,7 +4,7 @@ library(BDgraph)
 
 Ti <- 100
 
-c <- 10
+c <- 30
 
 Posdef <- function (n, ev = runif(n, 0, 3))
 {
@@ -19,18 +19,23 @@ Posdef <- function (n, ev = runif(n, 0, 3))
   return(Z)
 }
 
-m  <- c
+# m  <- c
+# 
+# g1 <- sample_smallworld(1,size=c,nei=5,p=0.1) #5
+# W1 <- as.matrix(as_adjacency_matrix(g1, sparse = F))
+# 
+# W <- W1
+# 
+# pdmatA <- as.matrix(W)
+# 
+# pdmat0 <- rgwish( n = 1, adj = pdmatA, b = 6, D = diag(m), threshold = 1e-8 )
+# pdmat0 <- pdmatA * pdmat0 + diag(diag(pdmat0))
+# pdmat0[which(abs(pdmat0)<1)] <- 0
 
-g1 <- sample_smallworld(1,size=c,nei=5,p=0.1) #5
-W1 <- as.matrix(as_adjacency_matrix(g1, sparse = F))
+pdmat0 <- Posdef(n=c, ev=runif(c, 0, 10))
 
-W <- W1
+pdmat0[which(abs(pdmat0) < 1)] <- 0 #Generate sparse precision matrix
 
-pdmatA <- as.matrix(W)
-
-pdmat0 <- rgwish( n = 1, adj = pdmatA, b = 6, D = diag(m), threshold = 1e-8 )
-pdmat0 <- pdmatA * pdmat0 + diag(diag(pdmat0))
-pdmat0[which(abs(pdmat0)<1)] <- 0
 
 #pdmat0 <- Posdef(n=c, ev=runif(c, 0, 10))
 

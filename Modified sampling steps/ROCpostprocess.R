@@ -64,4 +64,4 @@ rocvec <- function(fitN, pdmat0){
 
 rc <- rocvec(fitN, pdmat0)
 
-plot(rc$FP, rc$TP, type="l", xlab="False Positive", ylab="True Positive")
+plot(rc$FP, rc$TP, type="l", xlim=c(0,1), ylim=c(0,1), xlab="False Positive", ylab="True Positive")
